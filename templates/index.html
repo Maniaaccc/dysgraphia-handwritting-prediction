@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>OCR with Dysgraphia Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <style>
+    #result span.correct { color: green; }
+    #result span.incorrect { color: red; }
+    #loader { display: none; color: blue; }
+  </style>
+</head>
+<body>
+  <h2>Reading Sample OCR (with Dysgraphia Prediction)</h2>
+
+  <label for="expectedSentence">Enter Expected Sentence (max 500 words):</label><br>
+  <textarea id="expectedSentence" rows="5" cols="100" placeholder="Paste expected sentence here..."></textarea><br><br>
+
+  <label for="imageInput">Upload Handwriting Image:</label><br>
+  <input type="file" id="imageInput" accept="image/*"><br><br>
+
+  <button onclick="submitSample()">Submit</button>
+  <div id="loader">Processing OCR and analysis...</div>
+
+  <h3>OCR & Dyslexia Analysis:</h3>
+  <div id="result"></div>
+  <pre id="debugOutput"></pre>
+
+  <script>
+    function submitSample() {
+      const expected = document.getElementById('expectedSentence').value.trim();
+      const fileInput = document.getElementById('imageInput');
+      const loader = document.getElementById('loader');
+      const result = document.getElementById('result');
+
+      if (!expected || expected.split(' ').length > 500) {
+        alert("Expected sentence should not exceed 500 words.");
+        return;
+      }
+      if (!fileInput.files.length) {
+        alert("Please upload a handwriting image.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("expected", expected);
+      formData.append("image", fileInput.files[0]);
+
+      loader.style.display = 'block';
+      result.innerHTML = "";
+
+      fetch("/ocr-compare", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        loader.style.display = 'none';
+        if (data.error) {
+          result.innerHTML = "<span style='color:red'>" + data.error + "</span>";
+        } else {
+          result.innerHTML = `
+            <strong>Expected:</strong> ${data.expected}<br>
+            <strong>OCR Output:</strong> ${data.ocr_output}<br><br>
+            <strong>Comparison:</strong><br>${data.comparison_html}<br><br>
+            <strong>Error Stats:</strong><br>
+            Char Error Rate: ${data.char_error_rate}<br>
+            Word Error Rate: ${data.word_error_rate}<br>
+            Substitutions: ${data.substitutions}<br>
+            Insertions: ${data.insertions}<br>
+            Deletions: ${data.deletions}<br>
+            Reversed Letters: ${data.reversed_letters}<br><br>
+            <strong>Dyslexia Prediction:</strong> ${data.dyslexia_risk}
+          `;
+          fetch("/generate-report", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+          })
+          .then(res => res.json())
+          .then(pdfData => {
+            const link = document.createElement("a");
+            link.href = pdfData.download_url;
+            link.download = "Dyslexia_Report.pdf";
+            link.innerText = "📄 Download PDF Report";
+            link.style.display = "block";
+            link.style.marginTop = "10px";
+            result.appendChild(link);
+          });
+        }
+      })
+      .catch(err => {
+        loader.style.display = 'none';
+        result.innerHTML = "<span style='color:red'>Error: " + err.message + "</span>";
+      });
+    }
+  </script>
+</body>
+</html>
