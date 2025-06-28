@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Dysgraphia Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    h1 { color: #2c3e50; }
+    .section { margin-bottom: 20px; }
+    .highlight { font-weight: bold; color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <h1>Dyslexia Analysis Report</h1>
+
+  <div class="section">
+    <strong>Expected Sentence:</strong>
+    <p>{{ expected }}</p>
+  </div>
+
+  <div class="section">
+    <strong>OCR Output:</strong>
+    <p>{{ ocr_output }}</p>
+  </div>
+
+  <div class="section">
+    <strong>Error Statistics:</strong>
+    <ul>
+      <li>Char Error Rate: {{ char_error_rate }}</li>
+      <li>Word Error Rate: {{ word_error_rate }}</li>
+      <li>Substitutions: {{ substitutions }}</li>
+      <li>Insertions: {{ insertions }}</li>
+      <li>Deletions: {{ deletions }}</li>
+      <li>Reversed Letters: {{ reversed_letters }}</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <strong>Dyslexia Prediction:</strong>
+    <p class="highlight">{{ dyslexia_risk }}</p>
+  </div>
+
+  <footer>
+    <hr>
+    <small>Generated on {{ timestamp }}</small>
+  </footer>
+</body>
+</html>
